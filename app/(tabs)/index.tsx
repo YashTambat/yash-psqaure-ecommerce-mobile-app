@@ -1,98 +1,189 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useEffect } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { CategoryPills } from '@/components/home/CategoryPills';
+import { HomeHeader } from '@/components/home/HomeHeader';
+import { HomeState } from '@/components/home/HomeState';
+import { ProductCard } from '@/components/home/ProductCard';
+import { PromoBanner } from '@/components/home/PromoBanner';
+import { SectionHeader } from '@/components/home/SectionHeader';
+import { loadProducts } from '@/redux/productsSlice';
+import { useAppDispatch, useAppSelector } from '@/redux/store';
 
-export default function HomeScreen() {
+export default function HomeRoute() {
+  const dispatch = useAppDispatch();
+  const { items, status, error } = useAppSelector((state) => state.products);
+
+  useEffect(() => {
+    if (status === 'idle') {
+      dispatch(loadProducts());
+    }
+  }, [dispatch, status]);
+
+  const categories = Array.from(new Set(items.map((product) => product.category.name))).slice(0, 5);
+  const featureProducts = items.slice(0, 6);
+  const recommendedProducts = items.slice(6, 12);
+  const topCollection = items.slice(12, 16);
+  const heroImage = featureProducts[0]?.images[0];
+  const collectionProduct = recommendedProducts[0];
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <HomeHeader title="Stylinx" subtitle="Discover your next favorite look" />
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {categories.length > 0 ? <CategoryPills categories={categories} /> : null}
+
+        {status === 'loading' ? (
+          <HomeState title="Loading products" message="We’re pulling the latest catalog for your home feed." />
+        ) : null}
+
+        {status === 'failed' ? (
+          <HomeState
+            title="Couldn’t load products"
+            message={error ?? 'Something went wrong while loading the catalog.'}
+            actionLabel="Try again"
+            onActionPress={() => dispatch(loadProducts())}
+          />
+        ) : null}
+
+        {status === 'succeeded' ? (
+          <>
+            <PromoBanner imageUrl={heroImage} subtitle="New Collection" title="Autumn Collection 2021" />
+
+            <SectionHeader title="Feature Products" />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}>
+              {featureProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </ScrollView>
+
+            <View style={styles.collectionBanner}>
+              <View style={styles.collectionCopy}>
+                <Text style={styles.collectionEyebrow}>New Collection</Text>
+                <Text style={styles.collectionTitle}>Hang Out{'\n'}& Party</Text>
+              </View>
+              {collectionProduct ? (
+                <View style={styles.collectionImageWrap}>
+                  <ProductCard product={collectionProduct} compact />
+                </View>
+              ) : null}
+            </View>
+
+            <SectionHeader title="Recommended" />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}>
+              {recommendedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} compact />
+              ))}
+            </ScrollView>
+
+            <SectionHeader title="Top Collection" />
+            <View style={styles.stack}>
+              {topCollection.map((product, index) => (
+                <View key={product.id} style={[styles.collectionCard, index === 0 && styles.collectionCardAccent]}>
+                  <View style={styles.collectionTextWrap}>
+                    <Text style={styles.collectionCategory}>{product.category.name}</Text>
+                    <Text style={styles.collectionName}>{product.title}</Text>
+                  </View>
+                  <View style={styles.collectionPreview}>
+                    <ProductCard product={product} compact />
+                  </View>
+                </View>
+              ))}
+            </View>
+          </>
+        ) : null}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  safeArea: {
+    backgroundColor: '#111111',
+    flex: 1,
+  },
+  content: {
+    paddingBottom: 120,
+    paddingHorizontal: 18,
+    paddingTop: 16,
+  },
+  horizontalList: {
+    paddingBottom: 28,
+  },
+  collectionBanner: {
+    backgroundColor: '#262A34',
+    borderRadius: 28,
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    marginBottom: 28,
+    marginTop: 6,
+    overflow: 'hidden',
+    paddingLeft: 20,
   },
-  stepContainer: {
-    gap: 8,
+  collectionCopy: {
+    justifyContent: 'center',
+    paddingVertical: 22,
+  },
+  collectionEyebrow: {
+    color: '#AAAAAA',
+    fontSize: 11,
+    letterSpacing: 1,
     marginBottom: 8,
+    textTransform: 'uppercase',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  collectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '700',
+    lineHeight: 30,
+  },
+  collectionImageWrap: {
+    justifyContent: 'center',
+    marginRight: -12,
+    paddingVertical: 10,
+  },
+  stack: {
+    gap: 14,
+  },
+  collectionCard: {
+    alignItems: 'center',
+    backgroundColor: '#1A1E28',
+    borderRadius: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+    paddingLeft: 18,
+  },
+  collectionCardAccent: {
+    backgroundColor: '#2B2F3A',
+  },
+  collectionTextWrap: {
+    flex: 1,
+    gap: 10,
+    paddingVertical: 18,
+    paddingRight: 12,
+  },
+  collectionCategory: {
+    color: '#8E93A2',
+    fontSize: 11,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  collectionName: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+    lineHeight: 26,
+  },
+  collectionPreview: {
+    marginRight: -18,
   },
 });
