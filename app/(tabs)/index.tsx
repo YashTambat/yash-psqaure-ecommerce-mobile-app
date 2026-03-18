@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import { CategoryPills } from '@/components/home/CategoryPills';
 import { HomeHeader } from '@/components/home/HomeHeader';
@@ -13,7 +14,12 @@ import { useAppDispatch, useAppSelector } from '@/redux/store';
 
 export default function HomeRoute() {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const { items, status, error } = useAppSelector((state) => state.products);
+
+  const openProduct = (id: number) => {
+    router.push(`/product/${id}`);
+  };
 
   useEffect(() => {
     if (status === 'idle') {
@@ -58,7 +64,7 @@ export default function HomeRoute() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalList}>
               {featureProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} onPress={() => openProduct(product.id)} product={product} />
               ))}
             </ScrollView>
 
@@ -69,7 +75,11 @@ export default function HomeRoute() {
               </View>
               {collectionProduct ? (
                 <View style={styles.collectionImageWrap}>
-                  <ProductCard product={collectionProduct} compact />
+                  <ProductCard
+                    compact
+                    onPress={() => openProduct(collectionProduct.id)}
+                    product={collectionProduct}
+                  />
                 </View>
               ) : null}
             </View>
@@ -80,7 +90,12 @@ export default function HomeRoute() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalList}>
               {recommendedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} compact />
+                <ProductCard
+                  key={product.id}
+                  compact
+                  onPress={() => openProduct(product.id)}
+                  product={product}
+                />
               ))}
             </ScrollView>
 
@@ -93,7 +108,7 @@ export default function HomeRoute() {
                     <Text style={styles.collectionName}>{product.title}</Text>
                   </View>
                   <View style={styles.collectionPreview}>
-                    <ProductCard product={product} compact />
+                    <ProductCard compact onPress={() => openProduct(product.id)} product={product} />
                   </View>
                 </View>
               ))}

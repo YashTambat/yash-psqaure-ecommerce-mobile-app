@@ -16,6 +16,7 @@ export function HomeHeader({ title, subtitle }: HomeHeaderProps) {
 
 const styles = StyleSheet.create({
   container: {
+    alignItems: 'center',
     gap: 6,
     marginBottom: 22,
   },
@@ -23,9 +24,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 28,
     fontWeight: '700',
+    textAlign: 'center',
   },
   subtitle: {
     color: '#9F9F9F',
     fontSize: 14,
+    textAlign: 'center',
   },
 });

@@ -1,16 +1,19 @@
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 import type { Product } from '@/redux/productsSlice';
 
 type ProductCardProps = {
   product: Product;
   compact?: boolean;
+  onPress?: () => void;
 };
 
-export function ProductCard({ product, compact = false }: ProductCardProps) {
+export function ProductCard({ product, compact = false, onPress }: ProductCardProps) {
   return (
-    <View style={[styles.card, compact && styles.compactCard]}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, compact && styles.compactCard, pressed && styles.pressed]}>
       <Image
         source={{ uri: product.images[0] }}
         style={[styles.image, compact && styles.compactImage]}
@@ -20,7 +23,7 @@ export function ProductCard({ product, compact = false }: ProductCardProps) {
         {product.title}
       </Text>
       <Text style={styles.price}>${product.price.toFixed(2)}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -31,6 +34,9 @@ const styles = StyleSheet.create({
   },
   compactCard: {
     width: 160,
+  },
+  pressed: {
+    opacity: 0.85,
   },
   image: {
     backgroundColor: '#1F1F1F',
