@@ -10,23 +10,23 @@ function StepDots() {
   return (
     <View style={styles.stepper}>
       <View style={styles.stepIcon}>
-        <Ionicons color="#9EA3B1" name="location-sharp" size={22} />
+        <Ionicons color="#9EA3B1" name="location-sharp" size={24} />
       </View>
       <View style={styles.stepDotsWrap}>
-        {Array.from({ length: 6 }).map((_, index) => (
+        {Array.from({ length: 5 }).map((_, index) => (
           <View key={`left-${index}`} style={styles.stepDot} />
         ))}
       </View>
-      <View style={styles.stepIconCenterActive}>
-        <Ionicons color="#111111" name="card" size={18} />
+      <View style={[styles.stepIconCenter, styles.stepIconCenterActive]}>
+        <Ionicons color="#111111" name="card" size={20} />
       </View>
       <View style={styles.stepDotsWrap}>
-        {Array.from({ length: 6 }).map((_, index) => (
+        {Array.from({ length: 5 }).map((_, index) => (
           <View key={`right-${index}`} style={styles.stepDot} />
         ))}
       </View>
       <View style={styles.stepIcon}>
-        <Ionicons color="#111111" name="checkmark" size={20} />
+        <Ionicons color="#111111" name="checkmark" size={22} />
       </View>
     </View>
   );
@@ -50,9 +50,9 @@ export default function CheckoutPaymentRoute() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 2 }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons color="#FFFFFF" name="chevron-back" size={18} />
+          <Ionicons color="#FFFFFF" name="chevron-back" size={34} />
         </Pressable>
         <Text style={styles.headerTitle}>Check out</Text>
         <View style={styles.headerSpacer} />
@@ -148,35 +148,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingTop: 8,
+    paddingHorizontal: 28,
+    paddingBottom: 18,
   },
   backButton: {
     alignItems: 'center',
-    borderColor: '#343434',
-    borderRadius: 18,
+    borderColor: '#2C2D33',
+    borderRadius: 28,
     borderWidth: 1,
-    height: 34,
+    height: 56,
     justifyContent: 'center',
-    width: 34,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    width: 56,
   },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 28,
     fontWeight: '700',
   },
   headerSpacer: {
-    width: 34,
+    width: 56,
   },
   content: {
-    paddingHorizontal: 14,
-    paddingTop: 14,
+    paddingHorizontal: 22,
+    paddingTop: 22,
   },
   stepper: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 22,
+    justifyContent: 'space-between',
+    marginBottom: 34,
+    paddingHorizontal: 6,
   },
   stepIcon: {
     alignItems: 'center',
@@ -186,19 +194,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 48,
   },
-  stepIconCenterActive: {
+  stepIconCenter: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    height: 24,
+    backgroundColor: '#8D93A3',
+    borderRadius: 10,
+    height: 36,
     justifyContent: 'center',
-    marginHorizontal: 12,
     width: 48,
   },
+  stepIconCenterActive: {
+    backgroundColor: '#FFFFFF',
+  },
   stepDotsWrap: {
+    flex: 1,
     flexDirection: 'row',
-    gap: 10,
-    marginHorizontal: 12,
+    gap: 14,
+    justifyContent: 'center',
+    paddingHorizontal: 18,
   },
   stepDot: {
     backgroundColor: '#8D93A3',

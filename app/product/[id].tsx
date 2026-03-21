@@ -131,19 +131,22 @@ export default function ProductDetailsRoute() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.circleButton}>
-          <Ionicons color="#111111" name="chevron-back" size={18} />
+    <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
+      <View style={[styles.header, { top: insets.top + 10 }]}>
+        <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.circleButton, styles.backButton, pressed && styles.circleButtonPressed]}>
+          <Ionicons color="#FFFFFF" name="chevron-back" size={18} />
         </Pressable>
-        <Pressable style={styles.circleButton}>
-          <Ionicons color="#FF6B81" name="heart" size={16} />
+        <Pressable style={({ pressed }) => [styles.circleButton, styles.favoriteButton, pressed && styles.circleButtonPressed]}>
+          <Ionicons color="#FF5B6E" name="heart" size={16} />
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 130 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: 118 + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.heroWrap}>
-          <Image contentFit="cover" source={{ uri: product.images[0] }} style={styles.heroImage} />
+          <Image contentFit="contain" source={{ uri: product.images[0] }} style={styles.heroImage} />
         </View>
 
         <View style={styles.infoCard}>
@@ -153,7 +156,11 @@ export default function ProductDetailsRoute() {
           </View>
 
           <View style={styles.ratingRow}>
-            <Text style={styles.starText}>★★★★★</Text>
+            <View style={styles.ratingStars}>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Ionicons key={index} color="#59C7B2" name="star" size={12} />
+              ))}
+            </View>
             <Text style={styles.reviewMeta}>({reviewCount})</Text>
           </View>
 
@@ -164,7 +171,11 @@ export default function ProductDetailsRoute() {
                 <Pressable
                   key={color}
                   onPress={() => setSelectedColor(color)}
-                  style={[styles.colorDot, { backgroundColor: color }, selectedColor === color && styles.colorDotActive]}
+                  style={[
+                    styles.colorDot,
+                    { backgroundColor: color },
+                    selectedColor === color && styles.colorDotActive,
+                  ]}
                 />
               ))}
             </View>
@@ -177,7 +188,8 @@ export default function ProductDetailsRoute() {
                 <Pressable
                   key={size}
                   onPress={() => setSelectedSize(size)}
-                  style={[styles.sizeChip, selectedSize === size && styles.sizeChipActive]}>
+                  style={[styles.sizeChip, selectedSize === size && styles.sizeChipActive]}
+                >
                   <Text style={[styles.sizeText, selectedSize === size && styles.sizeTextActive]}>{size}</Text>
                 </Pressable>
               ))}
@@ -185,7 +197,10 @@ export default function ProductDetailsRoute() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>Description</Text>
+              <Ionicons color="#D6D6D6" name="chevron-down" size={16} />
+            </View>
             <Text style={styles.description}>
               {product.description ||
                 'Sportwear set is long-sleeve outerwear. It has a soft fabric body and a stylish silhouette that works for everyday wear.'}
@@ -193,14 +208,28 @@ export default function ProductDetailsRoute() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Reviews</Text>
-            <View style={styles.scoreRow}>
-              <Text style={styles.scoreValue}>{rating.toFixed(1)}</Text>
-              <Text style={styles.scoreScale}>out of 5</Text>
+            <View style={styles.reviewHeaderRow}>
+              <Text style={styles.sectionTitle}>Reviews</Text>
+              <Text style={styles.reviewAction}>WRITE A REVIEW</Text>
             </View>
-            <Text style={styles.barLabel}>Sizing and comfort feedback</Text>
-            {[92, 78, 65, 31, 25].map((percent, index) => (
-              <View key={percent} style={styles.barRow}>
+
+            <View style={styles.scorePanel}>
+              <View>
+                <Text style={styles.scoreValue}>{rating.toFixed(1)}</Text>
+                <Text style={styles.scoreScale}>out of 5</Text>
+              </View>
+              <View style={styles.reviewSummaryRight}>
+                <View style={styles.ratingStars}>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <Ionicons key={index} color="#59C7B2" name="star" size={12} />
+                  ))}
+                </View>
+                <Text style={styles.barLabel}>{reviewCount} Reviews</Text>
+              </View>
+            </View>
+
+            {[80, 12, 3, 0, 0].map((percent, index) => (
+              <View key={`${5 - index}-${percent}`} style={styles.barRow}>
                 <Text style={styles.barIndex}>{5 - index}</Text>
                 <View style={styles.barTrack}>
                   <View style={[styles.barFill, { width: `${percent}%` }]} />
@@ -209,6 +238,8 @@ export default function ProductDetailsRoute() {
               </View>
             ))}
 
+            <Text style={styles.reviewCountText}>{reviewCount} Reviews</Text>
+
             <View style={styles.reviewList}>
               {staticReviews.map((review) => (
                 <View key={review.id} style={styles.reviewCard}>
@@ -216,7 +247,14 @@ export default function ProductDetailsRoute() {
                     <Text style={styles.reviewAvatarText}>{review.author.charAt(0)}</Text>
                   </View>
                   <View style={styles.reviewContent}>
-                    <Text style={styles.reviewAuthor}>{review.author}</Text>
+                    <View style={styles.reviewTopRow}>
+                      <Text style={styles.reviewAuthor}>{review.author}</Text>
+                      <View style={styles.ratingStars}>
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <Ionicons key={index} color="#59C7B2" name="star" size={10} />
+                        ))}
+                      </View>
+                    </View>
                     <Text style={styles.reviewMessage}>{review.message}</Text>
                   </View>
                 </View>
@@ -226,7 +264,10 @@ export default function ProductDetailsRoute() {
 
           {similarProducts.length > 0 ? (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Similar Product</Text>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>Similar Product</Text>
+                <Ionicons color="#D6D6D6" name="chevron-down" size={16} />
+              </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {similarProducts.map((item) => (
                   <ProductCard key={item.id} onPress={() => router.replace(`/product/${item.id}`)} product={item} />
@@ -237,9 +278,9 @@ export default function ProductDetailsRoute() {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { bottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 12) + 4 }]}>
         <Pressable onPress={handleAddToCart} style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}>
-          <Ionicons color="#111111" name="bag-handle-outline" size={20} />
+          <Ionicons color="#111111" name="bag-handle-outline" size={18} />
           <Text style={styles.addButtonText}>Add To Cart</Text>
         </Pressable>
       </View>
@@ -249,7 +290,7 @@ export default function ProductDetailsRoute() {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#F4EFE8',
+    backgroundColor: '#F6F1EA',
     flex: 1,
   },
   header: {
@@ -257,41 +298,46 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     left: 0,
     paddingHorizontal: 16,
-    paddingTop: 6,
     position: 'absolute',
     right: 0,
-    top: 0,
-    zIndex: 10,
+    zIndex: 20,
   },
   circleButton: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFFD9',
     borderRadius: 18,
-    height: 36,
+    height: 34,
     justifyContent: 'center',
-    width: 36,
+    width: 34,
+  },
+  backButton: {
+    backgroundColor: '#1B1B1F',
+  },
+  favoriteButton: {
+    backgroundColor: '#FFFFFF',
+  },
+  circleButtonPressed: {
+    opacity: 0.82,
   },
   content: {
     paddingBottom: 140,
   },
   heroWrap: {
     alignItems: 'center',
-    backgroundColor: '#F4EFE8',
-    paddingBottom: 10,
-    paddingTop: 40,
+    backgroundColor: '#F6F1EA',
+    minHeight: 380,
+    paddingBottom: 12,
+    paddingTop: 28,
   },
   heroImage: {
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
     height: 360,
     width: '100%',
   },
   infoCard: {
-    backgroundColor: '#111111',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    marginTop: -24,
-    paddingHorizontal: 18,
+    backgroundColor: '#16171C',
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    marginTop: -20,
+    paddingHorizontal: 16,
     paddingTop: 18,
   },
   titleRow: {
@@ -303,26 +349,26 @@ const styles = StyleSheet.create({
   title: {
     color: '#FFFFFF',
     flex: 1,
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '600',
     paddingRight: 12,
   },
   price: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
   },
   ratingRow: {
+    alignItems: 'center',
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 18,
   },
-  starText: {
-    color: '#4EC9B0',
-    fontSize: 13,
-    letterSpacing: 1.2,
+  ratingStars: {
+    flexDirection: 'row',
+    gap: 2,
   },
   reviewMeta: {
-    color: '#818181',
+    color: '#8A8F98',
     fontSize: 12,
     marginLeft: 8,
   },
@@ -333,8 +379,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   optionLabel: {
-    color: '#9B9B9B',
-    fontSize: 13,
+    color: '#B2B5BC',
+    fontSize: 12,
   },
   colorRow: {
     flexDirection: 'row',
@@ -342,21 +388,21 @@ const styles = StyleSheet.create({
   },
   colorDot: {
     borderColor: 'transparent',
-    borderRadius: 10,
+    borderRadius: 11,
     borderWidth: 2,
-    height: 20,
-    width: 20,
+    height: 22,
+    width: 22,
   },
   colorDotActive: {
     borderColor: '#FFFFFF',
   },
   sizeRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
   sizeChip: {
     alignItems: 'center',
-    backgroundColor: '#1B1B1B',
+    backgroundColor: '#22242B',
     borderRadius: 14,
     height: 28,
     justifyContent: 'center',
@@ -366,7 +412,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   sizeText: {
-    color: '#B0B0B0',
+    color: '#B9BEC8',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -374,42 +420,62 @@ const styles = StyleSheet.create({
     color: '#111111',
   },
   section: {
-    borderTopColor: '#262626',
+    borderTopColor: '#2B2D34',
     borderTopWidth: StyleSheet.hairlineWidth,
     marginTop: 10,
-    paddingTop: 18,
+    paddingTop: 16,
+  },
+  sectionHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   sectionTitle: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 14,
+    fontSize: 14,
+    fontWeight: '600',
   },
   description: {
-    color: '#9A9A9A',
-    fontSize: 13,
-    lineHeight: 22,
+    color: '#8D929C',
+    fontSize: 11,
+    lineHeight: 18,
   },
-  scoreRow: {
+  reviewHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  reviewAction: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    letterSpacing: 0.8,
+  },
+  scorePanel: {
     alignItems: 'flex-end',
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    marginBottom: 14,
   },
   scoreValue: {
     color: '#FFFFFF',
-    fontSize: 34,
+    fontSize: 42,
     fontWeight: '700',
+    lineHeight: 42,
   },
   scoreScale: {
-    color: '#9B9B9B',
-    fontSize: 13,
-    marginBottom: 6,
+    color: '#8D929C',
+    fontSize: 11,
+    marginTop: 4,
+  },
+  reviewSummaryRight: {
+    alignItems: 'flex-end',
+    gap: 6,
   },
   barLabel: {
-    color: '#7A7A7A',
-    fontSize: 12,
-    marginBottom: 12,
+    color: '#8D929C',
+    fontSize: 10,
   },
   barRow: {
     alignItems: 'center',
@@ -417,12 +483,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   barIndex: {
-    color: '#B8B8B8',
-    fontSize: 12,
+    color: '#C8CBD2',
+    fontSize: 11,
     width: 12,
   },
   barTrack: {
-    backgroundColor: '#222222',
+    backgroundColor: '#2A2D34',
     borderRadius: 999,
     flex: 1,
     height: 4,
@@ -434,13 +500,18 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   barPercent: {
-    color: '#7D7D7D',
-    fontSize: 11,
-    width: 32,
+    color: '#8D929C',
+    fontSize: 10,
+    width: 30,
+  },
+  reviewCountText: {
+    color: '#8D929C',
+    fontSize: 10,
+    marginTop: 8,
   },
   reviewList: {
-    gap: 16,
-    marginTop: 18,
+    gap: 18,
+    marginTop: 16,
   },
   reviewCard: {
     flexDirection: 'row',
@@ -448,7 +519,7 @@ const styles = StyleSheet.create({
   },
   reviewAvatar: {
     alignItems: 'center',
-    backgroundColor: '#232323',
+    backgroundColor: '#24262D',
     borderRadius: 16,
     height: 32,
     justifyContent: 'center',
@@ -462,44 +533,51 @@ const styles = StyleSheet.create({
   reviewContent: {
     flex: 1,
   },
+  reviewTopRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
   reviewAuthor: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    marginBottom: 4,
   },
   reviewMessage: {
-    color: '#8E8E8E',
-    fontSize: 12,
-    lineHeight: 20,
+    color: '#8D929C',
+    fontSize: 11,
+    lineHeight: 17,
   },
   bottomBar: {
-    backgroundColor: '#FFFFFFF2',
-    borderRadius: 24,
-    left: 16,
-    padding: 12,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    bottom: 0,
+    left: 0,
+    paddingHorizontal: 20,
+    paddingTop: 12,
     position: 'absolute',
-    right: 16,
+    right: 0,
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 10,
+      height: -4,
     },
-    shadowOpacity: 0.14,
-    shadowRadius: 18,
-    elevation: 8,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 12,
   },
   addButton: {
     alignItems: 'center',
-    backgroundColor: '#F1EDE5',
-    borderRadius: 18,
+    borderRadius: 16,
     flexDirection: 'row',
     gap: 10,
     justifyContent: 'center',
-    paddingVertical: 18,
+    paddingVertical: 10,
   },
   addButtonPressed: {
-    opacity: 0.85,
+    opacity: 0.75,
   },
   addButtonText: {
     color: '#111111',
