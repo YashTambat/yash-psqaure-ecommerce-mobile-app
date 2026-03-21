@@ -1,4 +1,4 @@
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 
 import { authTheme } from '@/src/utils/auth-theme';
 
@@ -9,7 +9,7 @@ type AuthInputProps = {
   secureTextEntry?: boolean;
   keyboardType?: 'default' | 'email-address';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-};
+} & Pick<TextInputProps, 'textContentType' | 'autoComplete'>;
 
 export function AuthInput({
   placeholder,
@@ -18,11 +18,14 @@ export function AuthInput({
   secureTextEntry = false,
   keyboardType = 'default',
   autoCapitalize = 'none',
+  textContentType,
+  autoComplete,
 }: AuthInputProps) {
   return (
     <View style={styles.wrapper}>
       <TextInput
         autoCapitalize={autoCapitalize}
+        autoComplete={autoComplete}
         autoCorrect={false}
         keyboardType={keyboardType}
         onChangeText={onChangeText}
@@ -31,6 +34,7 @@ export function AuthInput({
         secureTextEntry={secureTextEntry}
         selectionColor={authTheme.textPrimary}
         style={styles.input}
+        textContentType={textContentType}
         value={value}
       />
     </View>

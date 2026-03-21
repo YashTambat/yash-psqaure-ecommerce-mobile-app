@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -17,6 +17,9 @@ export default function HomeRoute() {
   const router = useRouter();
   const { items, status, error } = useAppSelector((state) => state.products);
 
+  const isInitialLoading = status === 'loading' && items.length === 0;
+  const isRefreshing = status === 'loading' && items.length > 0;
+
   const openProduct = (id: number) => {
     router.push(`/product/${id}`);
   };
@@ -27,6 +30,10 @@ export default function HomeRoute() {
     }
   }, [dispatch, status]);
 
+  const handleRefresh = useCallback(() => {
+    dispatch(loadProducts());
+  }, [dispatch]);
+
   const categories = Array.from(new Set(items.map((product) => product.category.name))).slice(0, 5);
   const featureProducts = items.slice(0, 6);
   const recommendedProducts = items.slice(6, 12);
@@ -36,13 +43,35 @@ export default function HomeRoute() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            colors={['#FFFFFF']}
+            progressBackgroundColor="#181818"
+            refreshing={isRefreshing}
+            tintColor="#FFFFFF"
+            onRefresh={handleRefresh}
+          />
+        }>
         <HomeHeader title="Stylinx" subtitle="Discover your next favorite look" />
 
         {categories.length > 0 ? <CategoryPills categories={categories} /> : null}
 
-        {status === 'loading' ? (
-          <HomeState title="Loading products" message="We’re pulling the latest catalog for your home feed." />
+        {isRefreshing ? (
+          <View style={styles.loadingBar}>
+            <ActivityIndicator color="#FFFFFF" size="small" />
+            <Text style={styles.loadingText}>Refreshing the latest styles for you...</Text>
+          </View>
+        ) : null}
+
+        {isInitialLoading ? (
+          <HomeState
+            isLoading
+            title="Loading products"
+            message="We’re pulling the latest catalog for your home feed."
+          />
         ) : null}
 
         {status === 'failed' ? (
@@ -50,11 +79,11 @@ export default function HomeRoute() {
             title="Couldn’t load products"
             message={error ?? 'Something went wrong while loading the catalog.'}
             actionLabel="Try again"
-            onActionPress={() => dispatch(loadProducts())}
+            onActionPress={handleRefresh}
           />
         ) : null}
 
-        {status === 'succeeded' ? (
+        {(status === 'succeeded' || isRefreshing) && items.length > 0 ? (
           <>
             <PromoBanner imageUrl={heroImage} subtitle="New Collection" title="Autumn Collection 2021" />
 
@@ -132,6 +161,21 @@ const styles = StyleSheet.create({
   },
   horizontalList: {
     paddingBottom: 28,
+  },
+  loadingBar: {
+    alignItems: 'center',
+    backgroundColor: '#181818',
+    borderRadius: 18,
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  loadingText: {
+    color: '#D9D9D9',
+    flex: 1,
+    fontSize: 14,
   },
   collectionBanner: {
     backgroundColor: '#262A34',

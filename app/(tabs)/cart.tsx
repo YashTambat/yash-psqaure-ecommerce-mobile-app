@@ -6,6 +6,18 @@ import { useRouter } from 'expo-router';
 
 import { useCart } from '@/components/cart/cart-context';
 
+const getColorLabel = (color: string) => {
+  if (color === '#F1D7C6') {
+    return 'Cream';
+  }
+
+  if (color === '#1D1D1F') {
+    return 'Black';
+  }
+
+  return 'Rose';
+};
+
 export default function CartRoute() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -16,88 +28,100 @@ export default function CartRoute() {
   const total = subtotal + shipping;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons color="#FFFFFF" name="chevron-back" size={18} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Your Cart</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <View style={[styles.page, { paddingTop: Math.max(insets.top, 8) }]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons color="#FFFFFF" name="chevron-back" size={18} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Your Cart</Text>
+          <View style={styles.headerSpacer} />
+        </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 230 + insets.bottom }]} showsVerticalScrollIndicator={false}>
-        {items.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>Your cart is empty</Text>
-            <Text style={styles.emptyText}>Add a product from the details screen to see it here.</Text>
-          </View>
-        ) : (
-          items.map((item) => (
-            <View key={item.cartKey} style={styles.cartCard}>
-              <Image contentFit="cover" source={{ uri: item.image }} style={styles.productImage} />
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: items.length > 0 ? 248 + insets.bottom : 48 + insets.bottom },
+          ]}
+          showsVerticalScrollIndicator={false}>
+          {items.length === 0 ? (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconWrap}>
+                <Ionicons color="#FFFFFF" name="bag-handle-outline" size={22} />
+              </View>
+              <Text style={styles.emptyTitle}>Your cart is empty</Text>
+              <Text style={styles.emptyText}>Add a product from the details screen to see it here.</Text>
+            </View>
+          ) : (
+            items.map((item) => (
+              <View key={item.cartKey} style={styles.cartCard}>
+                <Image contentFit="cover" source={{ uri: item.image }} style={styles.productImage} />
 
-              <View style={styles.itemBody}>
-                <View style={styles.itemTopRow}>
-                  <View style={styles.itemTextWrap}>
-                    <Text numberOfLines={2} style={styles.productTitle}>
-                      {item.title}
-                    </Text>
-                    <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
-                  </View>
-                  <View style={styles.itemActions}>
-                    <View style={styles.checkBadge}>
-                      <Ionicons color="#111111" name="checkmark" size={14} />
+                <View style={styles.itemBody}>
+                  <View style={styles.itemTopRow}>
+                    <View style={styles.itemTextWrap}>
+                      <Text numberOfLines={2} style={styles.productTitle}>
+                        {item.title}
+                      </Text>
+                      <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
                     </View>
-                    <Pressable
-                      onPress={() => removeItem(item.cartKey)}
-                      style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}>
-                      <Ionicons color="#FFFFFF" name="trash-outline" size={15} />
-                    </Pressable>
+                    <View style={styles.itemActions}>
+                      <View style={styles.checkBadge}>
+                        <Ionicons color="#111111" name="checkmark" size={14} />
+                      </View>
+                      <Pressable
+                        onPress={() => removeItem(item.cartKey)}
+                        style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}>
+                        <Ionicons color="#FFFFFF" name="trash-outline" size={15} />
+                      </Pressable>
+                    </View>
                   </View>
-                </View>
 
-                <View style={styles.itemBottomRow}>
-                  <Text style={styles.variantMeta}>
-                    Size: {item.size} | Color: {item.color === '#F1D7C6' ? 'Cream' : item.color === '#1D1D1F' ? 'Black' : 'Rose'}
-                  </Text>
+                  <View style={styles.itemBottomRow}>
+                    <Text style={styles.variantMeta}>
+                      Size: {item.size} | Color: {getColorLabel(item.color)}
+                    </Text>
 
-                  <View style={styles.quantityRow}>
-                    <Pressable onPress={() => decreaseQuantity(item.cartKey)} style={styles.quantityButton}>
-                      <Ionicons color="#FFFFFF" name="remove" size={14} />
-                    </Pressable>
-                    <Text style={styles.quantityValue}>{item.quantity}</Text>
-                    <Pressable onPress={() => increaseQuantity(item.cartKey)} style={styles.quantityButton}>
-                      <Ionicons color="#FFFFFF" name="add" size={14} />
-                    </Pressable>
+                    <View style={styles.quantityRow}>
+                      <Pressable onPress={() => decreaseQuantity(item.cartKey)} style={styles.quantityButton}>
+                        <Ionicons color="#FFFFFF" name="remove" size={14} />
+                      </Pressable>
+                      <Text style={styles.quantityValue}>{item.quantity}</Text>
+                      <Pressable onPress={() => increaseQuantity(item.cartKey)} style={styles.quantityButton}>
+                        <Ionicons color="#FFFFFF" name="add" size={14} />
+                      </Pressable>
+                    </View>
                   </View>
                 </View>
               </View>
+            ))
+          )}
+        </ScrollView>
+
+        {items.length > 0 ? (
+          <View style={[styles.summaryCard, { paddingBottom: Math.max(insets.bottom, 18) }]}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Product price</Text>
+              <Text style={styles.summaryValue}>${subtotal.toFixed(0)}</Text>
             </View>
-          ))
-        )}
-      </ScrollView>
+            <View style={styles.divider} />
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Shipping</Text>
+              <Text style={styles.summaryValue}>Freeship</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.summaryRow}>
+              <Text style={styles.totalLabel}>Subtotal</Text>
+              <Text style={styles.totalValue}>${total.toFixed(0)}</Text>
+            </View>
 
-      <View style={[styles.summaryCard, { paddingBottom: Math.max(insets.bottom, 18) }]}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Product price</Text>
-          <Text style={styles.summaryValue}>${subtotal.toFixed(0)}</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Shipping</Text>
-          <Text style={styles.summaryValue}>{items.length > 0 ? 'Freeship' : '$0'}</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.summaryRow}>
-          <Text style={styles.totalLabel}>Subtotal</Text>
-          <Text style={styles.totalValue}>${total.toFixed(0)}</Text>
-        </View>
-
-        <Pressable
-          onPress={() => router.push('/checkout/shipping')}
-          style={({ pressed }) => [styles.checkoutButton, pressed && styles.checkoutButtonPressed]}>
-          <Text style={styles.checkoutText}>Proceed to checkout</Text>
-        </Pressable>
+            <Pressable
+              onPress={() => router.push('/checkout/shipping')}
+              style={({ pressed }) => [styles.checkoutButton, pressed && styles.checkoutButtonPressed]}>
+              <Text style={styles.checkoutText}>Proceed to checkout</Text>
+            </Pressable>
+          </View>
+        ) : null}
       </View>
     </SafeAreaView>
   );
@@ -108,21 +132,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#20242F',
     flex: 1,
   },
+  page: {
+    flex: 1,
+  },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 18,
-    paddingTop: 10,
+    paddingBottom: 10,
   },
   backButton: {
     alignItems: 'center',
     borderColor: '#343434',
     borderRadius: 18,
     borderWidth: 1,
-    height: 34,
+    height: 38,
     justifyContent: 'center',
-    width: 34,
+    width: 38,
   },
   headerTitle: {
     color: '#FFFFFF',
@@ -130,16 +157,30 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   headerSpacer: {
-    width: 34,
+    width: 38,
   },
   content: {
     paddingHorizontal: 14,
-    paddingTop: 20,
+    paddingTop: 14,
   },
   emptyState: {
     alignItems: 'center',
-    marginTop: 120,
+    backgroundColor: '#121316',
+    borderColor: '#2B2E37',
+    borderRadius: 24,
+    borderWidth: 1,
+    marginTop: 90,
     paddingHorizontal: 24,
+    paddingVertical: 36,
+  },
+  emptyIconWrap: {
+    alignItems: 'center',
+    backgroundColor: '#20242F',
+    borderRadius: 999,
+    height: 56,
+    justifyContent: 'center',
+    marginBottom: 18,
+    width: 56,
   },
   emptyTitle: {
     color: '#FFFFFF',
@@ -205,8 +246,8 @@ const styles = StyleSheet.create({
   },
   variantMeta: {
     color: '#9AA0AC',
-    fontSize: 12,
     flex: 1,
+    fontSize: 12,
     paddingRight: 10,
   },
   itemBottomRow: {
@@ -248,14 +289,20 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     backgroundColor: '#121316',
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
+    borderTopColor: '#2B2E37',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderTopWidth: 1,
     bottom: 0,
     left: 0,
     paddingHorizontal: 18,
     paddingTop: 20,
     position: 'absolute',
     right: 0,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
   },
   summaryRow: {
     alignItems: 'center',

@@ -35,10 +35,18 @@ function StepDots() {
 export default function CheckoutPaymentRoute() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { items } = useCart();
+  const { items, placeOrder } = useCart();
   const [acceptedTerms, setAcceptedTerms] = useState(true);
 
   const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  const handlePlaceOrder = () => {
+    const order = placeOrder();
+
+    if (order) {
+      router.replace('/(tabs)/account');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -117,7 +125,7 @@ export default function CheckoutPaymentRoute() {
 
       <View style={[styles.bottomWrap, { paddingBottom: Math.max(insets.bottom, 18) }]}>
         <Pressable
-          onPress={() => router.replace('/(tabs)')}
+          onPress={handlePlaceOrder}
           style={({ pressed }) => [
             styles.primaryButton,
             (!acceptedTerms || items.length === 0) && styles.primaryButtonDisabled,

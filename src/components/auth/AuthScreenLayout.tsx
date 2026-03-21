@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
@@ -14,6 +14,9 @@ type AuthScreenLayoutProps = {
   footerLinkLabel: string;
   onFooterLinkPress: () => void;
   helperText?: string;
+  errorMessage?: string;
+  isSubmitting?: boolean;
+  ctaDisabled?: boolean;
 };
 
 export function AuthScreenLayout({
@@ -25,6 +28,9 @@ export function AuthScreenLayout({
   footerLinkLabel,
   onFooterLinkPress,
   helperText,
+  errorMessage,
+  isSubmitting = false,
+  ctaDisabled = false,
 }: AuthScreenLayoutProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -39,9 +45,22 @@ export function AuthScreenLayout({
           <View style={styles.formBlock}>{fields}</View>
 
           {helperText ? <Text style={styles.helperText}>{helperText}</Text> : null}
+          {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-          <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={onCtaPress}>
-            <Text style={styles.buttonText}>{ctaLabel}</Text>
+          <Pressable
+            disabled={ctaDisabled || isSubmitting}
+            style={({ pressed }) => [
+              styles.button,
+              (ctaDisabled || isSubmitting) && styles.buttonDisabled,
+              pressed && !ctaDisabled && !isSubmitting && styles.buttonPressed,
+            ]}
+            onPress={onCtaPress}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color={authTheme.buttonText} />
+            ) : (
+              <Text style={styles.buttonText}>{ctaLabel}</Text>
+            )}
           </Pressable>
         </View>
 
@@ -86,6 +105,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: -10,
   },
+  errorText: {
+    color: '#FF8A8A',
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 18,
+  },
   button: {
     alignItems: 'center',
     alignSelf: 'center',
@@ -95,6 +120,9 @@ const styles = StyleSheet.create({
     minWidth: 160,
     paddingHorizontal: 32,
     paddingVertical: 16,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonPressed: {
     opacity: 0.85,

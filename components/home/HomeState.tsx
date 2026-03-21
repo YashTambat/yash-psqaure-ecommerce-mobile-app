@@ -1,15 +1,17 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 type HomeStateProps = {
   title: string;
   message: string;
   actionLabel?: string;
+  isLoading?: boolean;
   onActionPress?: () => void;
 };
 
-export function HomeState({ title, message, actionLabel, onActionPress }: HomeStateProps) {
+export function HomeState({ title, message, actionLabel, isLoading = false, onActionPress }: HomeStateProps) {
   return (
     <View style={styles.container}>
+      {isLoading ? <ActivityIndicator color="#FFFFFF" size="small" style={styles.loader} /> : null}
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
       {actionLabel && onActionPress ? (
@@ -29,6 +31,9 @@ const styles = StyleSheet.create({
     marginTop: 60,
     paddingHorizontal: 24,
     paddingVertical: 36,
+  },
+  loader: {
+    marginBottom: 14,
   },
   title: {
     color: '#FFFFFF',

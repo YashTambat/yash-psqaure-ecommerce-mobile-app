@@ -1,37 +1,48 @@
-import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Image, Pressable, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 
+import { useCart } from '@/components/cart/cart-context';
+
 export default function SplashScreen() {
   const router = useRouter();
+  const { isAuthReady, token } = useCart();
 
   const handleGetStarted = () => {
-    router.replace('/login');
+    router.replace(token ? '/(tabs)' : '/login');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       <View style={styles.content}>
-        <View style={styles.logoContainer}>
-          <Image 
-            source={require('../assets/images/logo.png')} 
-            style={styles.logo} 
+        <View style={styles.heroContainer}>
+          <Image
+            source={require('../assets/images/image3.png')}
+            style={styles.heroImage}
             resizeMode="contain"
           />
         </View>
 
-        <Pressable 
+        <Pressable
+          disabled={!isAuthReady}
           style={({ pressed }) => [
             styles.button,
-            pressed && styles.buttonPressed
-          ]} 
+            !isAuthReady && styles.buttonDisabled,
+            pressed && isAuthReady && styles.buttonPressed,
+          ]}
           onPress={handleGetStarted}
         >
-          <Text style={styles.buttonText}>Get Started</Text>
-          <Ionicons name="arrow-forward" size={20} color="#000" />
+          {isAuthReady ? (
+            <>
+              <Text style={styles.buttonText}>{token ? 'Continue' : 'Get Started'}</Text>
+              <Ionicons name="arrow-forward" size={20} color="#000" />
+            </>
+          ) : (
+            <ActivityIndicator color="#000000" />
+          )}
         </Pressable>
       </View>
     </SafeAreaView>
@@ -48,18 +59,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingTop: 48,
     paddingBottom: 40,
   },
-  logoContainer: {
+  heroContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
   },
-  logo: {
-    width: 250,
-    height: 250,
+  heroImage: {
+    width: '100%',
+    height: '78%',
+    maxWidth: 420,
   },
   button: {
     flexDirection: 'row',
@@ -71,6 +83,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 30,
     marginBottom: 20,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonPressed: {
     opacity: 0.8,

@@ -1,4 +1,6 @@
-import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+
+import { clearStoredAuthSession, getStoredAuthSession, storeAuthSession } from '@/src/utils/auth-storage';
 
 export type CartProduct = {
   id: number;
@@ -14,22 +16,88 @@ export type CartItem = CartProduct & {
   quantity: number;
 };
 
+export type AccountProfile = {
+  name: string;
+  email: string;
+};
+
+export type AuthSession = AccountProfile & {
+  token: string;
+};
+
+export type OrderItem = CartItem;
+
+export type OrderSummary = {
+  id: string;
+  placedAt: string;
+  total: number;
+  itemCount: number;
+  items: OrderItem[];
+};
+
 type CartContextValue = {
   items: CartItem[];
+  orders: OrderSummary[];
+  profile: AccountProfile;
+  token: string | null;
+  isAuthReady: boolean;
   addItem: (item: CartProduct) => void;
   increaseQuantity: (cartKey: string) => void;
   decreaseQuantity: (cartKey: string) => void;
   removeItem: (cartKey: string) => void;
+  placeOrder: () => OrderSummary | null;
+  setAuthSession: (session: AuthSession) => Promise<void>;
+  clearAuthSession: () => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+const defaultProfile: AccountProfile = {
+  name: 'Guest User',
+  email: 'Sign in to view your profile',
+};
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [orders, setOrders] = useState<OrderSummary[]>([]);
+  const [profile, setProfile] = useState<AccountProfile>(defaultProfile);
+  const [token, setToken] = useState<string | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const hydrateAuthSession = async () => {
+      try {
+        const session = await getStoredAuthSession();
+
+        if (!isMounted || !session) {
+          return;
+        }
+
+        setProfile({ email: session.email, name: session.name });
+        setToken(session.token);
+      } finally {
+        if (isMounted) {
+          setIsAuthReady(true);
+        }
+      }
+    };
+
+    hydrateAuthSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const value = useMemo<CartContextValue>(
     () => ({
       items,
+      orders,
+      profile,
+      token,
+      isAuthReady,
       addItem: (item) => {
         setItems((currentItems) => {
           const cartKey = `${item.id}-${item.size}-${item.color}`;
@@ -61,12 +129,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
         );
       },
       removeItem: (cartKey) => {
-        setItems((currentItems) =>
-          currentItems.filter((item) => item.cartKey !== cartKey)
-        );
+        setItems((currentItems) => currentItems.filter((item) => item.cartKey !== cartKey));
+      },
+      placeOrder: () => {
+        if (items.length === 0) {
+          return null;
+        }
+
+        const order: OrderSummary = {
+          id: `ORD-${Date.now().toString().slice(-6)}`,
+          itemCount: items.reduce((total, item) => total + item.quantity, 0),
+          items: items.map((item) => ({ ...item })),
+          placedAt: new Date().toISOString(),
+          total: items.reduce((total, item) => total + item.price * item.quantity, 0),
+        };
+
+        setOrders((currentOrders) => [order, ...currentOrders]);
+        setItems([]);
+
+        return order;
+      },
+      setAuthSession: async (session) => {
+        setProfile({ email: session.email, name: session.name });
+        setToken(session.token);
+        await storeAuthSession(session);
+      },
+      clearAuthSession: async () => {
+        setProfile(defaultProfile);
+        setToken(null);
+        await clearStoredAuthSession();
       },
     }),
-    [items]
+    [isAuthReady, items, orders, profile, token]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
