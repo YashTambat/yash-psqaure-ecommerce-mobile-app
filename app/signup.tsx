@@ -1,6 +1,8 @@
+import { Redirect, useRouter } from 'expo-router';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useState } from 'react';
-import { useRouter } from 'expo-router';
 
+import { useCart } from '@/components/cart/cart-context';
 import { AuthInput } from '@/src/components/auth/AuthInput';
 import { AuthScreenLayout } from '@/src/components/auth/AuthScreenLayout';
 import { Api } from '@/src/config/api';
@@ -33,22 +35,32 @@ function getReadableResponseMessage(rawResponse: string, fallbackMessage: string
     return parsedResponse.message;
   }
 
-  const cleanedResponse = rawResponse
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const cleanedResponse = rawResponse.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
   return cleanedResponse || fallbackMessage;
 }
 
 export default function SignupRoute() {
   const router = useRouter();
+  const { isAuthReady, token } = useCart();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!isAuthReady) {
+    return (
+      <View style={styles.loadingWrap}>
+        <ActivityIndicator color="#FFFFFF" />
+      </View>
+    );
+  }
+
+  if (token) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   const handleSignup = async () => {
     const trimmedName = name.trim();
@@ -153,3 +165,12 @@ export default function SignupRoute() {
     />
   );
 }
+
+const styles = StyleSheet.create({
+  loadingWrap: {
+    alignItems: 'center',
+    backgroundColor: '#111111',
+    flex: 1,
+    justifyContent: 'center',
+  },
+});

@@ -1,5 +1,6 @@
+import { Redirect, useRouter } from 'expo-router';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useState } from 'react';
-import { useRouter } from 'expo-router';
 
 import { useCart } from '@/components/cart/cart-context';
 import { AuthInput } from '@/src/components/auth/AuthInput';
@@ -32,21 +33,30 @@ function getReadableResponseMessage(rawResponse: string, fallbackMessage: string
     return parsedResponse.message;
   }
 
-  const cleanedResponse = rawResponse
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const cleanedResponse = rawResponse.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
   return cleanedResponse || fallbackMessage;
 }
 
 export default function LoginRoute() {
   const router = useRouter();
-  const { setAuthSession } = useCart();
+  const { isAuthReady, setAuthSession, token } = useCart();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!isAuthReady) {
+    return (
+      <View style={styles.loadingWrap}>
+        <ActivityIndicator color="#FFFFFF" />
+      </View>
+    );
+  }
+
+  if (token) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   const handleLogin = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -130,3 +140,12 @@ export default function LoginRoute() {
     />
   );
 }
+
+const styles = StyleSheet.create({
+  loadingWrap: {
+    alignItems: 'center',
+    backgroundColor: '#111111',
+    flex: 1,
+    justifyContent: 'center',
+  },
+});

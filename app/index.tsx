@@ -1,5 +1,5 @@
+import { Redirect, useRouter } from 'expo-router';
 import { View, Text, StyleSheet, Image, Pressable, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -10,9 +10,20 @@ export default function SplashScreen() {
   const router = useRouter();
   const { isAuthReady, token } = useCart();
 
-  const handleGetStarted = () => {
-    router.replace(token ? '/(tabs)' : '/login');
-  };
+  if (!isAuthReady) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator color="#FFFFFF" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (token) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -26,23 +37,9 @@ export default function SplashScreen() {
           />
         </View>
 
-        <Pressable
-          disabled={!isAuthReady}
-          style={({ pressed }) => [
-            styles.button,
-            !isAuthReady && styles.buttonDisabled,
-            pressed && isAuthReady && styles.buttonPressed,
-          ]}
-          onPress={handleGetStarted}
-        >
-          {isAuthReady ? (
-            <>
-              <Text style={styles.buttonText}>{token ? 'Continue' : 'Get Started'}</Text>
-              <Ionicons name="arrow-forward" size={20} color="#000" />
-            </>
-          ) : (
-            <ActivityIndicator color="#000000" />
-          )}
+        <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={() => router.replace('/login')}>
+          <Text style={styles.buttonText}>Get Started</Text>
+          <Ionicons name="arrow-forward" size={20} color="#000" />
         </Pressable>
       </View>
     </SafeAreaView>
@@ -53,6 +50,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0F0F0F',
+  },
+  loadingWrap: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
@@ -83,9 +85,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 30,
     marginBottom: 20,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
   },
   buttonPressed: {
     opacity: 0.8,
